@@ -20,6 +20,11 @@ st.markdown
 """,unsafe_allow_html=True)
 st.title("AI Chatbox")
 st.caption("Your Personal AI")
+if st.button("Clear Chat"):
+	st.session_state.message=[]
+	st.rerun()
+if len(st.session_state.get("message",[]))==0:
+	st.info("Hello! i'm your AI Assistant..")
 if "messages" not in st.session_state:
 	st.session_state.messages=[]
 for message in st.session_state.message:
