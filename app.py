@@ -19,7 +19,7 @@ st.markdown
 	</style>
 """,unsafe_allow_html=True)
 st.title("AI Chatbox")
-st.caption("Your personal AI")
+st.caption("Your Personal AI")
 if "messages" not in st.session_state:
 	st.session_state.messages=[]
 for message in st.session_state.message:
