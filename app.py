@@ -6,9 +6,62 @@ load_dotenv()
 st.set_page_config(page_title="AI Chatbox",layout="centered")
 st.title("AI Chatbox")
 st.caption("AI Chatbox")
-if st.button("Clear Chat"):
-    st.session_state.messages = []
-    st.rerun()
+with st.sidebar:
+    st.header("Settings")
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
+    dark_mode=st.toggle("Dark Mode",value=False)
+    st.markdown("---")
+    st.markdown("**Model:** openai/gpt-oss-20b")
+if dark_mode:
+    st.markdown("""
+            <style>
+                .stApp
+                {
+                background-color: black;
+                color : white;
+                }
+                section[data-testid="stSidebar"]
+                {
+                    background-color:grey;
+                }
+                div[data-testid="stChatInput"]
+                {
+                    background-color: dimgrey;
+                }
+                div[data-testid="stChatInput"] textarea{
+                background-color: dimgrey
+                color: white;
+                }
+                div[data-testid="stBottom"]
+                {
+                background-color: black;
+                }
+            </style>
+        """,unsafe_allow_html=True)
+else:
+    st.markdown("""
+            <style>
+                .stApp
+                {
+                    background-color: white;
+                    color : black;
+                }
+                section[data-testid="stSidebar"]
+                {
+                    background-color:grey;
+                }
+                div[data-testid="stChatInput"] textarea {
+                background-color: white;
+                color: black;
+                }
+                div[data-testid="stBottom"]
+                {
+                    background-color: white;
+                }
+            </style>
+        """,unsafe_allow_html=True)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if len(st.session_state.messages) == 0:
@@ -16,7 +69,7 @@ if len(st.session_state.messages) == 0:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-if prompt := st.chat_input("Message AI Chatbox..."):
+if prompt := st.chat_input("Type your message here..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -27,7 +80,8 @@ if prompt := st.chat_input("Message AI Chatbox..."):
                 api_messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
                 response = client.chat.completions.create(
                     model="openai/gpt-oss-20b",
-                    messages=api_messages,
+                    messages=[{"role": "system", "content": "You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI."}
+                    ] + st.session_state.messages,
                     temperature=0.7,
                 )
                 reply = response.choices[0].message.content
