@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 st.set_page_config(page_title="AI Chatbox",layout="centered")
+if "messages" not in st.session_state:
+    st.session_state.messages=[]
 st.title("AI Chatbox")
 st.caption("AI Chatbox")
 with st.sidebar:
@@ -11,6 +13,14 @@ with st.sidebar:
     if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
+    st.markdown("---")
+    st.subheader("Chat History")
+    if len(st.session_state.messages)>0:
+        for msg in st.session_state.messages:
+            role="You" if msg["role"] =="user" else "AI"
+            st.caption(f"{role}:{msg['content'][:50]}...")
+    else:
+        st.caption("No Messages Yet")
     dark_mode=st.toggle("Dark Mode",value=False)
     st.markdown("---")
     st.markdown("**Model:** openai/gpt-oss-20b")
