@@ -13,6 +13,20 @@ with st.sidebar:
     if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
+    if st.button("Download chat"):
+        if st.session_state.get("messages"):
+            chat_text=""
+            for msg in st.session_state.messages:
+                role="you" if msg["role"]=="user" else "AI"
+                chat_text += f"{role}:{msg['content']}\n\n"
+            st.download_button(
+                label="Click to Download",
+                data=chat_text,
+                file_name="chat_history.txt",
+                mime="text/plain"
+            )
+        else:
+            st.warning("No chat to download")
     st.markdown("---")
     st.subheader("Chat History")
     if len(st.session_state.messages)>0:
