@@ -13,6 +13,10 @@ with st.sidebar:
     if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
+    model = st.selectbox(
+        "Select Model",
+        ["llama-3.1-8b-instant","openai/gpt-oss-20b"]
+    )
     if st.button("Download chat"):
         if st.session_state.get("messages"):
             chat_text=""
@@ -103,9 +107,9 @@ if prompt := st.chat_input("Type your message here..."):
                 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
                 api_messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
                 response = client.chat.completions.create(
-                    model="openai/gpt-oss-20b",
+                    model=model,
                     messages=[{"role": "system", "content": "You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI."}
-                    ] + st.session_state.messages,
+                    ] + st.session_state.messages + api_messages,
                     temperature=0.7,
                 )
                 reply = response.choices[0].message.content
