@@ -15,7 +15,7 @@ with st.sidebar:
         st.rerun()
     model = st.selectbox(
         "Select Model",
-        ["llama-3.1-8b-instant","openai/gpt-oss-20b"]
+        ["openai/gpt-oss-120b","openai/gpt-oss-20b"]
     )
     if st.button("Download chat"):
         if st.session_state.get("messages"):
@@ -94,13 +94,34 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if len(st.session_state.messages) == 0:
     st.info(" Hello! i'm AI , Ask me")
+    st.markdown("**Try these questions:**")
+    col1, col2=st.columns(2)
+    with col1:
+        if st.button("What is Artificial Intelligence?"):
+            st.session_state.messages.append({"role":"user","content":"What is Artificial Inteligence?"})
+            st.session_state.generate=True
+            st.rerun()
+        if st.button("Explain Machine Learning"):
+            st.session_state.messages.append({"role":"user","content":"Explain machine learning"})
+            st.session_state.generate=True
+            st.rerun()
+    with col2:
+        if st.button("What is Data Science?"):
+            st.session_state.messages.append({"role":"user","content":"What is Data Science?"})
+            st.session_state.generate=True
+            st.rerun()
+        if st.button("Difference between AI and ML"):
+            st.session_state.messages.append({"role":"user","content":"Difference between AI and ML"})
+            st.session_state.generate=True
+            st.rerun()
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-if prompt := st.chat_input("Type your message here..."):
+prompt = st.chat_input("Type your message here...")
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    st.session_state.generate=True
+if st.session_state.get("generate") and st.session_state.messages and st.session_state.messages[-1]["role"]=="user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
