@@ -17,6 +17,14 @@ with st.sidebar:
         "Select Model",
         ["openai/gpt-oss-120b","openai/gpt-oss-20b"]
     )
+    temperature=st.slider(
+        "Temperature",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        step=0.1,
+        help="Low = Precise answer | High = Creative answers"
+    )
     if st.button("Download chat"):
         if st.session_state.get("messages"):
             chat_text=""
@@ -131,7 +139,7 @@ if st.session_state.get("generate") and st.session_state.messages and st.session
                     model=model,
                     messages=[{"role": "system", "content": "You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI."}
                     ] + st.session_state.messages + api_messages,
-                    temperature=0.7,
+                    temperature=temperature,
                 )
                 reply = response.choices[0].message.content
                 st.markdown(reply)
