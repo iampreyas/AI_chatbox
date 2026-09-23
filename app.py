@@ -25,6 +25,14 @@ with st.sidebar:
         step=0.1,
         help="Low = Precise answer | High = Creative answers"
     )
+    st.markdown("---")
+    st.subheader("AI Personality")
+    system_prompt = st.text_area(
+        "System Prompt",
+        value="You are a helpful and friendly AI assistant. Give clear and simple answers.",
+        height=100,
+        help="Change the AI's behavior and personality here"
+    )
     if st.button("Download chat"):
         if st.session_state.get("messages"):
             chat_text=""
@@ -134,7 +142,7 @@ if st.session_state.get("generate") and st.session_state.messages and st.session
         with st.spinner("Thinking..."):
             try:
                 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-                api_messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+                api_messages = [{"role":"system","content":system_prompt}] + [{"role":m["role"],"content":m["content"]} for m in st.session_state.messages]
                 response = client.chat.completions.create(
                     model=model,
                     messages=[{"role": "system", "content": "You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI."}
