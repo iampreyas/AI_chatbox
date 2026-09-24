@@ -151,6 +151,13 @@ if st.session_state.get("generate") and st.session_state.messages and st.session
                 )
                 reply = response.choices[0].message.content
                 st.markdown(reply)
-                st.session_state.messages.append({"role": "assistant", "content": reply})
+                st.download_button(
+                    label="Copy Response",
+                    data=reply,
+                    file_name="response.txt",
+                    mime="text/plain",
+                    key=f"copy_{len(st.session_state.messages)}"
+                )
+                st.session_state.messages.append({"role":"assistant","content":reply})
             except Exception as e:
                 st.error(f"Error: {e}")
