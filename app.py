@@ -48,6 +48,14 @@ with st.sidebar:
         else:
             st.warning("No chat to download")
     st.markdown("---")
+    st.subheader("Chat Stats")
+    total=len(st.session_state.get("messages",[]))
+    user_msgs=len([m for m in st.session_state.get("messages",[]) if m["role"]=="user"])
+    ai_msgs=len([m for m in st.session_state.get("messages",[]) if m["role"]=="assistant"])
+    st.write(f"**Total Messages:** {total}")
+    st.write(f"**Your Messages:** {user_msgs}")
+    st.write(f"AI Messages:** {ai_msgs}")
+    st.markdown("---")
     st.subheader("Chat History")
     if len(st.session_state.messages)>0:
         for msg in st.session_state.messages:
