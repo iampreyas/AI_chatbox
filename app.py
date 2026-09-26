@@ -4,15 +4,32 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 st.set_page_config(page_title="AI Chatbox",layout="centered")
+if "chats" not in st.session_state:
+    st.session_state.chats={"Chat 1":[]}
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat="Chat 1"
 if "messages" not in st.session_state:
-    st.session_state.messages=[]
+    st.session_state.messages=st.session_state.chats[st.session_state.current_chat]
 st.title("AI Chatbox")
 st.caption("AI Chatbox")
 with st.sidebar:
     st.header("Settings")
+    if st.button("New Chat"):
+        new_chat_name=f"Chat {len(st.session_state.chats)+1}"
+        st.session_state.chats[new_chat_name]=[]
+        st.session_state.current_chat=new_chat_name
+        st.session_state.messages=st.session_state.chats[new_chat_name]
+        st.rerun()
     if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
+    st.markdown("---")
+    st.subheader("Chat History")
+    for chat_name in st.session_state.chats:
+        if st.button(chat_name,key=f"chat_{chat_name}"):
+            st.session_state.current_chat=chat_name
+            st.session_state.messages=st.session_state.chats[chat_name]
+            st.rerun()
     model = st.selectbox(
         "Select Model",
         ["openai/gpt-oss-120b","openai/gpt-oss-20b"]
@@ -144,6 +161,7 @@ for message in st.session_state.messages:
 prompt = st.chat_input("Type your message here...")
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.chats[st.session_state.current_chat]=st.session_state.messages
     st.session_state.generate=True
 if st.session_state.get("generate") and st.session_state.messages and st.session_state.messages[-1]["role"]=="user":
     with st.chat_message("assistant"):
@@ -167,5 +185,6 @@ if st.session_state.get("generate") and st.session_state.messages and st.session
                     key=f"copy_{len(st.session_state.messages)}"
                 )
                 st.session_state.messages.append({"role":"assistant","content":reply})
+                st.session_state.chats[st.session_state.current_chat]=st.session_state.messages
             except Exception as e:
                 st.error(f"Error: {e}")
