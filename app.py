@@ -50,6 +50,21 @@ with st.sidebar:
         height=100,
         help="Change the AI's behavior and personality here"
     )
+    st.markdown("---")
+    st.subheader("Upload Document")
+    uploaded_file = st.file_uploader(
+        "Upload PDF or Text file",
+        type=["pdf","txt","docx","csv","md","json","xlsx","xls","py","html","xml","log","rtf","jpg","jpeg","png","webp","bmp","gif","ppt","pptx","odt","ods"]
+    )
+    if uploaded_file is not None:
+        st.success(f"Uploaded: {uploaded_file.name}")
+        if uploaded_file.name.endswith((".txt",".md",".py",".json",".html",".xml",".log",".csv",".rtf")):
+            file_content=uploaded_file.read().decode("utf-8")
+        elif uploaded_file.name.endswith((".pdf",".docx",".doc",".xlse",".xls",".pptx",".ppt")):
+            file_content="This file will be supported soon."
+        else:
+            file_content="Unsupported file type."
+        st.session_state.file_content=file_content
     if st.button("Download chat"):
         if st.session_state.get("messages"):
             chat_text=""
@@ -163,20 +178,29 @@ if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.chats[st.session_state.current_chat]=st.session_state.messages
     st.session_state.generate=True
+    st.rerun()
 if st.session_state.get("generate") and st.session_state.messages and st.session_state.messages[-1]["role"]=="user":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
                 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-                api_messages = [{"role":"system","content":system_prompt}] + [{"role":m["role"],"content":m["content"]} for m in st.session_state.messages]
+                final_system_prompt = system_prompt
+                if "file_content" in st.session_state and st.session_state.file_content:
+                    final_system_prompt += f"\n\nHere is the content of the uploaded document:\n\n{st.session_state.file_content[:8000]}"
+                api_messages = [{"role":"system","content":"You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI.\n\n" + final_system_prompt}] + [{"role":m["role"],"content":m["content"]} for m in st.session_state.messages]
                 response = client.chat.completions.create(
                     model=model,
-                    messages=[{"role": "system", "content": "You are a helpful AI assistant powered by openai/gpt-oss-20b Do Not refer to yourself as ChatGPT or OpenAI."}
-                    ] + st.session_state.messages + api_messages,
+                    messages=api_messages,
                     temperature=temperature,
+                    stream=True
                 )
-                reply = response.choices[0].message.content
-                st.markdown(reply)
+                reply = ""
+                response_placeholder = st.empty()
+                for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        reply += chunk.choices[0].delta.content
+                        response_placeholder.markdown(reply + "| ")
+                response_placeholder.markdown(reply)
                 st.download_button(
                     label="Copy Response",
                     data=reply,
@@ -188,3 +212,4 @@ if st.session_state.get("generate") and st.session_state.messages and st.session
                 st.session_state.chats[st.session_state.current_chat]=st.session_state.messages
             except Exception as e:
                 st.error(f"Error: {e}")
+                st.write(e)
