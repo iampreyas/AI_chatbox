@@ -10,6 +10,8 @@ if "current_chat" not in st.session_state:
     st.session_state.current_chat="Chat 1"
 if "messages" not in st.session_state:
     st.session_state.messages=st.session_state.chats[st.session_state.current_chat]
+if "uploaded_files_list" not in st.session_state:
+    st.session_state.uploaded_files_list=[]
 st.title("AI Chatbox")
 st.caption("AI Chatbox")
 with st.sidebar:
@@ -52,19 +54,35 @@ with st.sidebar:
     )
     st.markdown("---")
     st.subheader("Upload Document")
-    uploaded_file = st.file_uploader(
+    uploaded_files = st.file_uploader(
         "Upload PDF or Text file",
-        type=["pdf","txt","docx","csv","md","json","xlsx","xls","py","html","xml","log","rtf","jpg","jpeg","png","webp","bmp","gif","ppt","pptx","odt","ods"]
+        type=["pdf","txt","docx","csv","md","json","xlsx","xls","py","html","xml","log","rtf","jpg","jpeg","png","webp","bmp","gif","ppt","pptx","odt","ods"],
+        accept_multiple_files=True,
+        key="file_uploader"
     )
-    if uploaded_file is not None:
-        st.success(f"Uploaded: {uploaded_file.name}")
-        if uploaded_file.name.endswith((".txt",".md",".py",".json",".html",".xml",".log",".csv",".rtf")):
-            file_content=uploaded_file.read().decode("utf-8")
-        elif uploaded_file.name.endswith((".pdf",".docx",".doc",".xlse",".xls",".pptx",".ppt")):
-            file_content="This file will be supported soon."
-        else:
-            file_content="Unsupported file type."
-        st.session_state.file_content=file_content
+    if uploaded_files:
+        for file in uploaded_files:
+            if file.name not in [f.name for f in st.session_state.uploaded_files_list]:
+                st.session_state.uploaded_files_list.append(file)
+    if st.session_state.uploaded_files_list:
+        st.write("**Uploaded Files:**")
+        for i, file in enumerate(st.session_state.uploaded_files_list):
+            col1, col2=st.columns([4,1])
+            with col1:
+                st.write(f"{file.name}")
+            with col2:
+                if st.button("X",key=f"remove_{i}"):
+                    st.session_state.uploaded_files_list.pop(i)
+                    st.rerun()
+        all_content=""
+        for file in st.session_state.uploaded_files_list:
+            if file.name.endswith((".txt",".md",".py",".json",".html",".xml",".log",".csv",".rtf")):
+                content = file.read().decode("utf-8")
+                all_content += f"\n\n---File: {file.name}---\n{content}"
+                file.seek(0)
+            else: 
+                all_content += f"\n\n---File: {uploaded_file.name}---\n(This file will be supported soon.)"
+        st.session_state.file_content=all_content
     if st.button("Download chat"):
         if st.session_state.get("messages"):
             chat_text=""
