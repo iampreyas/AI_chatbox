@@ -2,6 +2,7 @@ import streamlit as st
 from groq import Groq
 import os
 from dotenv import load_dotenv
+from pypdf import PdfReader
 load_dotenv()
 st.set_page_config(page_title="AI Chatbox",layout="centered")
 if "chats" not in st.session_state:
@@ -80,8 +81,15 @@ with st.sidebar:
                 content = file.read().decode("utf-8")
                 all_content += f"\n\n---File: {file.name}---\n{content}"
                 file.seek(0)
+            elif file.name.endswith(".pdf"):
+                reader=PdfReader(file)
+                content=""
+                for page in reader.pages:
+                    content +=page.extract_text() or ""
+                all_content += f"\n\n---File: {file.name}---\n{content}"
+                file.seek(0)
             else: 
-                all_content += f"\n\n---File: {uploaded_file.name}---\n(This file will be supported soon.)"
+                all_content += f"\n\n---File: {file.name}---\n(This file will be supported soon.)"
         st.session_state.file_content=all_content
     if st.button("Download chat"):
         if st.session_state.get("messages"):
